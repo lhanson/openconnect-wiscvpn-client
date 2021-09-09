@@ -1,0 +1,11 @@
+# UW Madison NetID
+# To use an already-provisioned static IP, add a numerical suffix like "myNetID_1"
+# (see KB for details: https://kb.wisc.edu/ns/108255)
+user=
+# NetID password
+password=
+# Path to the scripts/hipreport.sh script included in this repository
+hipreport=
+# Script used to set up routing and DNS after connecting
+# Specify the included scripts/vpnc-script for simple, non-split-tunnel access
+script=

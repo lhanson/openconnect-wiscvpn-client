@@ -7,6 +7,11 @@ however the proprietary client does not support the use of split tunnels.
 
 Based on a script shared by @ERIC.SCHOVILLE.
 
+## Requirements
+
+* [openconnect](https://www.infradead.org/openconnect/) v8.00 or later
+* [vpn-slice](https://github.com/dlenski/vpn-slice) (optional, used for split tunneling)
+
 ## Configuration
 
 Copy `config.sample` somewhere and fill in the blanks.
@@ -28,6 +33,7 @@ To use a static VPN IP address, you'll first need to reserve one.
 See the [KB](https://kb.wisc.edu/ns/108255) for details.
 
 ## Resources
-[OpenConnect](https://www.infradead.org/openconnect/index.html)
-[Support for GlobalProtect in OpenConnect](https://www.infradead.org/openconnect/globalprotect.html)
-[Alternative solution to WiscVPN for Linux users](https://kb.wisc.edu/91149)
+
+* [OpenConnect](https://www.infradead.org/openconnect/index.html)
+* [Support for GlobalProtect in OpenConnect](https://www.infradead.org/openconnect/globalprotect.html)
+* [Alternative solution to WiscVPN for Linux users](https://kb.wisc.edu/91149)

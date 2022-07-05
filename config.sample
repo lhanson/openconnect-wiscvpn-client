@@ -19,3 +19,13 @@ subnets=(
 hosts=(
 	#host.name.tld
 )
+
+# AWS regions whose CloudFront IP ranges should be routed through the VPN.
+# When set, ip-ranges.amazonaws.com is queried at connect time and all matching
+# CLOUDFRONT CIDRs are added to the tunnel. Use "GLOBAL" for globally-distributed
+# CloudFront edge IPs (requires curl and jq).
+tunnel_aws_regions=(
+	#us-east-1
+	#us-east-2
+	#GLOBAL
+)

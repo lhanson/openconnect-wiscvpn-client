@@ -63,11 +63,39 @@ main() {
 	# Sourced from vpn.config
 	subnets=()
 	hosts=()
+	tunnel_aws_regions=()
 
 	# shellcheck source=./config.sample
 	source "$config_file"
 
 	if [[ "$split_tunnel" == "true" ]]; then
+		# If AWS regions are specified, fetch CloudFront CIDRs and add them to subnets.
+		# This ensures all CloudFront IPs for those regions are routed through the VPN,
+		# regardless of which specific IP a CloudFront-fronted host resolves to at any moment.
+		if [[ ${#tunnel_aws_regions[@]} -gt 0 ]]; then
+			for cmd in curl jq; do
+				if ! command -v "$cmd" >/dev/null 2>&1; then
+					echo "Error: $cmd is required for AWS CloudFront routing, install and try again"
+					exit 5
+				fi
+			done
+			echo "Adding CloudFront IP ranges for AWS regions: ${tunnel_aws_regions[*]}"
+			local region_filter
+			region_filter=$(printf '%s\n' "${tunnel_aws_regions[@]}" | jq -Rn '[inputs]')
+			local aws_json
+			aws_json=$(curl -sf https://ip-ranges.amazonaws.com/ip-ranges.json) || {
+				echo "Error: failed to download AWS IP ranges from ip-ranges.amazonaws.com"
+				exit 7
+			}
+			mapfile -t aws_cidrs < <(
+				echo "$aws_json" | jq -r \
+					--argjson regions "$region_filter" \
+					'.prefixes[] | select(.service == "CLOUDFRONT" and (.region | IN($regions[]))) | .ip_prefix'
+			)
+			echo "Adding ${#aws_cidrs[@]} CloudFront CIDRs to tunnel"
+			subnets+=("${aws_cidrs[@]}")
+		fi
+
 		extra_args=""
 		if [[ "$no_host_names" == "true" ]]; then
 			extra_args="${extra_args} --no-host-names"
@@ -82,7 +110,7 @@ main() {
 	echo
 	echo "Press [CTRL+C] to stop.."
 
-	# Background loop to refresh routes for dynamic-IP hosts (e.g. CloudFront)
+	# Background loop to refresh routes for dynamic-IP hosts (e.g. ElasticBeanstalk endpoints)
 	if [[ "$split_tunnel" == "true" && ${#hosts[@]} -gt 0 ]]; then
 		_refresh_host_routes() {
 			# Wait for tun0 to come up

@@ -1,0 +1,9 @@
+shellcheck:
+  stage: test
+  image: registry.gitlab.com/pipeline-components/shellcheck:latest
+  tags:
+    - aws
+  before_script:
+    - shellcheck --version
+  script:
+    - shellcheck --color=always --external-sources ./vpn

@@ -2,8 +2,17 @@
 
 usage() {
 	echo "Usage: $0 [--split] [config_file_path]"
+	echo "[config_file_path] defaults to \"$(default_config_path)\""
 	echo
 	echo "	--split		Enable split tunneling using well-known DoIT IP ranges"
+}
+
+default_config_path() {
+	if [ -z "$XDG_CONFIG_HOME" ]; then
+		echo "$HOME/.config/vpn/config"
+	else
+		echo "$XDG_CONFIG_HOME/vpn/config"
+	fi
 }
 
 main() {
@@ -11,15 +20,16 @@ main() {
 	local split_tunnel="false"
 
 	if [[ $EUID -ne 0 ]]; then
-		echo "This script must be run as root, use sudo "$0" instead" 1>&2
+		echo "This script must be run as root, use sudo \"$0\" instead" 1>&2
 		exit 1
 	fi
 
 	# Parse input
-	if [[ $# -lt 1 || $# -gt 2 ]]; then
+	if [[ $# -gt 2 ]]; then
 		usage
 		exit 2
 	else
+		# Parse arguments
 		for arg in "$@"
 		do
 			if [[ "$arg" == "--split" ]]; then
@@ -28,11 +38,10 @@ main() {
 				config_file="$arg"
 			fi
 		done
-		if [[ $# -eq 1 && "$config_file" == "" ]] || [[ $# -eq 2 && "$split_tunnel" == "false" ]]; then
-			echo "Invalid arguments"
-			usage
-			exit 3
-		fi
+
+		# Use default config file path if unspecified
+		config_file=${config_file:-$(default_config_path)}
+
 		# Check for vpn-slice if necessary
 		command -v "vpn-slice" >/dev/null 2>&1
 		if [[ $? -ne 0 && "$split_tunnel" == "true" ]]; then
@@ -42,7 +51,8 @@ main() {
 		fi
 	fi
 
-	source $config_file
+	# shellcheck source=./config.sample
+	source "$config_file"
 
 	if [[ "$split_tunnel" == "true" ]]; then
 		# Common DoIT Subnets https://kb.wisc.edu/ns/page.php?id=3988
@@ -57,18 +67,18 @@ main() {
 			198.133.225.0/24
 			198.51.254.0/24
 		)
-		script="vpn-slice --domains-vpn-dns wisc.edu ${subnets[@]}"
+		script="vpn-slice --domains-vpn-dns wisc.edu ${subnets[*]}"
 	fi
 
 	echo "Press [CTRL+C] to stop.."
-	(echo $password; echo 1) | openconnect \
-		--user=$user \
+	(echo "${password:?}"; echo 1) | openconnect \
+		--user="${user:?}" \
 		--usergroup=gateway \
 		--passwd-on-stdin \
 		--prot=gp \
-		--csd-wrapper $hipreport \
+		--csd-wrapper "${hipreport:?}" \
 		--script="${script}" \
 		uwmadison.vpn.wisc.edu
 }
 
-main $@
+main "$@"

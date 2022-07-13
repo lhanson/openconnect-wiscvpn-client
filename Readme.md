@@ -15,6 +15,8 @@ Based on a script shared by @ERIC.SCHOVILLE.
 ## Configuration
 
 Copy `config.sample` somewhere and fill in the blanks.
+If a config file path is not specified on the command line, the script will look for configuration in `$XDG_CONFIG_HOME/vpn/config`, falling back to `$HOME/.config/vpn/config` if `$XDG_CONFIG_HOME` is not set.
+Know and love the [XDG Base Directory Specification](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html) if interested.
 
 ## Usage
 

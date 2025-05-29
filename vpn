@@ -97,6 +97,7 @@ main() {
 		--prot=gp \
 		--csd-wrapper "${hipreport:?}" \
 		--script="${script}" \
+		--reconnect-timeout=10 \
 		uwmadison.vpn.wisc.edu
 }
 

@@ -9,3 +9,13 @@ hipreport=
 # Script used to set up routing and DNS after connecting
 # Specify the included scripts/vpnc-script for simple, non-split-tunnel access
 script=
+
+# Subnets to route through the VPN
+subnets=(
+	#1.2.3.4/16
+)
+
+# Additional hostnames to route through the VPN (resolved at connect time)
+hosts=(
+	#host.name.tld
+)

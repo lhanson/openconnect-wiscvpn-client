@@ -82,6 +82,31 @@ main() {
 	echo
 	echo "Press [CTRL+C] to stop.."
 
+	# Background loop to refresh routes for dynamic-IP hosts (e.g. CloudFront)
+	if [[ "$split_tunnel" == "true" && ${#hosts[@]} -gt 0 ]]; then
+		_refresh_host_routes() {
+			# Wait for tun0 to come up
+			local retries=0
+			while ! ip link show tun0 &>/dev/null; do
+				sleep 1
+				retries=$((retries + 1))
+				[[ $retries -ge 30 ]] && { echo "route-refresh: tun0 never appeared" >&2; return 1; }
+			done
+			echo "route-refresh: started for ${hosts[*]}"
+			while true; do
+				for host in "${hosts[@]}"; do
+					while IFS= read -r ip; do
+						[[ -n "$ip" ]] && ip route replace "$ip" dev tun0 2>/dev/null || true
+					done < <(dig +short "$host" | grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$')
+				done
+				sleep 30
+			done
+		}
+		_refresh_host_routes &
+		_REFRESH_PID=$!
+		trap '[[ -n "$_REFRESH_PID" ]] && kill "$_REFRESH_PID" 2>/dev/null' EXIT
+	fi
+
 	(echo "${password:?}"; echo 1) | openconnect \
 		--user="${user:?}" \
 		--usergroup=gateway \

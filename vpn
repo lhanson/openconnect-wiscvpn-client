@@ -96,7 +96,7 @@ main() {
 			while true; do
 				for host in "${hosts[@]}"; do
 					while IFS= read -r ip; do
-						[[ -n "$ip" ]] && ip route replace "$ip" dev tun0 2>/dev/null || true
+						if [[ -n "$ip" ]]; then ip route replace "$ip" dev tun0 2>/dev/null; fi
 					done < <(dig +short "$host" | grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$')
 				done
 				sleep 30

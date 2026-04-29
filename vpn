@@ -79,7 +79,7 @@ main() {
 					exit 5
 				fi
 			done
-			echo "Adding CloudFront IP ranges for AWS regions: ${tunnel_aws_regions[*]}"
+			echo "Adding CloudFront and S3 IP ranges for AWS regions: ${tunnel_aws_regions[*]}"
 			local region_filter
 			region_filter=$(printf '%s\n' "${tunnel_aws_regions[@]}" | jq -Rn '[inputs]')
 			local aws_json
@@ -90,9 +90,9 @@ main() {
 			mapfile -t aws_cidrs < <(
 				echo "$aws_json" | jq -r \
 					--argjson regions "$region_filter" \
-					'.prefixes[] | select(.service == "CLOUDFRONT" and (.region | IN($regions[]))) | .ip_prefix'
+					'.prefixes[] | select((.service == "CLOUDFRONT" or .service == "S3") and (.region | IN($regions[]))) | .ip_prefix'
 			)
-			echo "Adding ${#aws_cidrs[@]} CloudFront CIDRs to tunnel"
+			echo "Adding ${#aws_cidrs[@]} CloudFront/S3 CIDRs to tunnel"
 			subnets+=("${aws_cidrs[@]}")
 		fi
 
